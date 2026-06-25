@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Academic Success Workspace</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; background: #faf8f5; color: #4a3e3d; }
+        .sidebar { width: 260px; background: #efe9e2; color: #5c4d42; height: 100vh; padding: 30px 20px; box-sizing: border-box; border-right: 2px solid #e5dbd0; position: fixed; }
+        .sidebar h2 { color: #8c6a5c; margin-bottom: 40px; font-size: 22px; text-align: center; }
+        .sidebar a { display: block; color: #7a685a; padding: 14px 18px; text-decoration: none; border-radius: 14px; margin-bottom: 8px; font-weight: 500; }
+        .sidebar a.active { background: #ffffff; color: #5c4d42; box-shadow: 0 4px 10px rgba(185, 172, 153, 0.15); }
+        
+        .main-content { margin-left: 260px; flex: 1; padding: 40px 50px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #efe9e2; padding-bottom: 20px; }
+        .header h1 { font-size: 28px; color: #5c4d42; margin: 0; }
+        .logout-btn { background: #e6b8b8; color: #733c3c; padding: 10px 18px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 14px; }
+        
+        /* Metric Badges Row */
+        .counters-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px; }
+        .counter-card { background: #ffffff; padding: 15px; border-radius: 166px; text-align: center; border: 2px solid #efe9e2; box-shadow: 0 4px 10px rgba(185, 172, 153, 0.05); }
+        .counter-num { font-size: 24px; font-weight: bold; color: #8c6a5c; margin-top: 5px; }
+        .counter-title { font-size: 11px; color: #a39081; font-weight: bold; text-transform: uppercase; }
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 25px; }
+        .widget { background: #ffffff; padding: 25px; border-radius: 20px; box-shadow: 0 6px 16px rgba(185, 172, 153, 0.1); border: 2px solid #f2ece4; }
+        .widget h3 { margin-top: 0; color: #7a685a; font-size: 18px; border-bottom: 1px dashed #efe9e2; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        input, select { padding: 6px 10px; border: 2px solid #ecdcd0; border-radius: 8px; background: #faf8f5; color: #4a3e3d; font-size: 13px; }
+        button.cozy-btn { background: #ddbea9; color: #6b4f3a; font-weight: bold; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        button.cozy-btn:hover { background: #bb9a84; }
+        .btn-del { color: #c97a7a; text-decoration: none; font-size: 12px; font-weight: bold; margin-left: 8px; }
+
+        .class-item, .task-item { background: #faf8f5; padding: 10px 14px; border-radius: 12px; margin-top: 10px; border: 1px solid #efe9e2; display: flex; justify-content: space-between; align-items: center; }
+        .task-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .task-completed { text-decoration: line-through; color: #bfaea0; opacity: 0.7; }
+        
+        /* Pomodoro & Goals Elements */
+        .timer-display { font-size: 42px; font-weight: bold; color: #8c6a5c; text-align: center; margin: 10px 0; font-family: monospace; }
+        .badge-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .badge-icon { background: #faf8f5; border: 2px solid #efe9e2; padding: 10px; border-radius: 12px; text-align: center; font-size: 20px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+        
+        #calendar { max-height: 400px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>☕ Dashboard Pro</h2>
+        <a href="#" class="active">🏠 Workspace Hub</a>
+        <a href="/ai_suite" style="background: #ddbea9; color: #6b4f3a; margin-top: 5px;">✨ AI Copilot Suite</a>
+        <a href="#" onclick="window.print();" class="cozy-btn" style="color: white; text-align: center; margin-top: 20px; display: block;">📊 Export PDF Report</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Workspace Terminal ✨</h1>
+            <a href="/logout" class="logout-btn">Leave Desk</a>
+        </div>
+
+        <div class="counters-container">
+            <div class="counter-card" style="border-color: #ebdcb9;">
+                <div class="counter-title">🎓 Current GPA</div>
+                <div class="counter-num">{{ overall_gpa }}</div>
+            </div>
+            <div class="counter-card" style="border-color: #ebdcb9;">
+                <div class="counter-title">📈 Score Average</div>
+                <div class="counter-num">{{ overall_average }}%</div>
+            </div>
+            <div class="counter-card">
+                <div class="counter-title">📚 Active Courses</div>
+                <div class="counter-num">{{ total_subjects }}</div>
+            </div>
+            <div class="counter-card" style="border-color: #e3ecdb;">
+                <div class="counter-title">✅ Completed</div>
+                <div class="counter-num">{{ completed_assignments }}</div>
+            </div>
+            <div class="counter-card" style="border-color: #fcd5d5;">
+                <div class="counter-title">⏳ Backlog Pending</div>
+                <div class="counter-num">{{ pending_assignments }}</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            
+            <div class="widget" style="grid-column: span 2;">
+                <h3>📅 Interactive Master Schedule Calendar</h3>
+                <div id="calendar"></div>
+            </div>
+
+            <div class="widget">
+                <h3>📊 Grade Distribution & GPA Trends</h3>
+                <canvas id="analyticsChart" style="max-height: 250px;"></canvas>
+            </div>
+
+            <div class="widget">
+                <h3>⏳ Focus Hour Pomodoro</h3>
+                <div class="timer-display" id="timer">25:00</div>
+                <div style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+                    <button class="cozy-btn" onclick="startTimer()">Start</button>
+                    <button class="cozy-btn" onclick="pauseTimer()" style="background:#efe9e2; color:#5c4d42;">Pause</button>
+                    <button class="cozy-btn" onclick="resetTimer()" style="background:#e6b8b8; color:#733c3c;">Reset</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 13px; text-align: center; color: #a39081;">
+                    🎯 💻 Coding Streak: <strong>{{ streaks.coding }} days</strong> | 📖 Reading Streak: <strong>{{ streaks.reading }} days</strong>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>🎯 Custom Target Milestones</h3>
+                <div id="goalList">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                        <span>🔥 Maintain a GPA &ge; 3.5</span>
+                        <input type="checkbox" checked disabled />
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                        <span>📚 Complete 10 assignments this month</span>
+                        <input type="checkbox" {% if completed_assignments >= 10 %}checked{% endif %} disabled />
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                        <span>🌱 Clear all high priority tasks</span>
+                        <input type="checkbox" id="priorityGoal" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>🏆 Earned Milestone Badges</h3>
+                <div class="badge-grid">
+                    <div class="badge-icon" title="Created your testing desk workspace">🚀</div>
+                    {% if total_subjects > 0 %}<div class="badge-icon" title="Enrolled in your first class module">📚</div>{% endif %}
+                    {% if completed_assignments > 0 %}<div class="badge-icon" title="Finished an academic milestone assignment">🎓</div>{% endif %}
+                    {% if overall_gpa >= 3.8 %}<div class="badge-icon" title="Maintained Honor Roll performance standing">🌟</div>{% endif %}
+                    {% if streaks.coding > 2 or streaks.reading > 2 %}<div class="badge-icon" title="Kept up a multi-day habit streak running">🔥</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="widget" style="grid-column: span 2;">
+                <h3>📝 Course Assignments Management Matrix</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    {% for a in assignments %}
+                        <div class="task-item">
+                            <form action="/edit_assignment/{{ a.id }}" method="POST" class="task-row {% if a.is_complete %}task-completed{% endif %}">
+                                <div style="display: flex; align-items: center; gap: 8px; flex: 2;">
+                                    <a href="/toggle_complete/{{ a.id }}" style="text-decoration: none; font-size: 16px;">
+                                        {% if a.is_complete %}🟤{% else %}🫙{% endif %}
+                                    </a>
+                                    <span style="font-size:12px; font-weight:bold; color:#8c6a5c;">[{{ a.class_name }}]</span>
+                                    <input type="text" name="assignment_name" value="{{ a.name }}" required style="border:1px solid transparent; background:transparent;" />
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                                    <input type="date" name="due_date" value="{{ a.due_date }}" style="border:1px solid transparent; background:transparent; font-size:12px;" />
+                                    <input type="number" name="score" value="{% if a.score >= 0 %}{{ a.score }}{% endif %}" placeholder="--" min="0" max="100" step="0.1" style="width:45px; border-bottom:1px dashed #ccd; background:transparent;" />
+                                    <input type="number" name="weight" value="{{ a.weight }}" required style="width:35px; border-bottom:1px dashed #ccd; background:transparent;" />
+                                    <button type="submit" style="background:none; border:none; cursor:pointer;">💾</button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="js-data-classes" style="display: none;">
+        {% for c in classes %}<span data-name="{{ c.name }}" data-avg="{{ c.average }}"></span>{% endfor %}
+    </div>
+
+    <div id="js-data-assignments" style="display: none;">
+        {% for a in assignments %}
+            {% if a.due_date and a.due_date != "No Date" %}
+                <span data-title="[{{ a.class_name }}] {{ a.name }}" data-date="{{ a.due_date }}" data-complete="{{ a.is_complete }}"></span>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <script>
+        // 1. EXTRACT DATA SAFELY WITHOUT MIXING JINJA INTO JS
+        const classNames = [];
+        const classAverages = [];
+        document.querySelectorAll('#js-data-classes span').forEach(el => {
+            classNames.push(el.getAttribute('data-name'));
+            classAverages.push(parseFloat(el.getAttribute('data-avg')));
+        });
+
+        const eventItems = [];
+        document.querySelectorAll('#js-data-assignments span').forEach(el => {
+            const isComplete = el.getAttribute('data-complete') === '1';
+            eventItems.push({
+                title: el.getAttribute('data-title'),
+                start: el.getAttribute('data-date'),
+                color: isComplete ? '#bfaea0' : '#8c6a5c'
+            });
+        });
+
+        // 2. ANALYTICS CHART INITIALIZATION
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: classNames.length ? classNames : ["No Modules Added"],
+                datasets: [{
+                    label: 'Current Class Average Score %',
+                    data: classAverages.length ? classAverages : [0],
+                    backgroundColor: '#ddbea9',
+                    borderColor: '#b99a83',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: { scales: { y: { min: 0, max: 100 } } }
+        });
+
+        // 3. MASTER SCHEDULE CALENDAR INITIALIZATION
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: eventItems,
+                headerToolbar: { left: 'prev,next today', center: 'title', right: '' }
+            });
+            calendar.render();
+
+            // Safe browser notifications check
+            if (parseInt("{{ pending_assignments }}") > 0) {
+                if (Notification.permission === "granted") {
+                    new Notification("Workspace Check-In ☕", { body: "You have assignments awaiting checklist clearance today!" });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+        });
+
+        // 4. POMODORO COUNTER TIME WORKSPACE MECHANISM
+        let timerInterval;
+        let timeLeft = 25 * 60;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    alert("Focus session completed successfully! Go take a break.");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() { clearInterval(timerInterval); }
+        function resetTimer() { clearInterval(timerInterval); timeLeft = 25 * 60; updateTimerDisplay(); }
+    </script>
+</body>
+</html>
