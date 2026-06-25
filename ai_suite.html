@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Suite - Student Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { background: #fff; min-height: 100vh; border-right: 1px solid #dee2e6; padding: 20px; }
+        .card { border: none; border-radius: 12px; transition: transform 0.2s; margin-bottom: 20px; }
+        .nav-link { color: #495057; border-radius: 8px; margin-bottom: 5px; padding: 10px 15px; text-decoration: none; display: block; }
+        .nav-link.active { background: #6f42c1; color: white !important; }
+        .nav-link:hover:not(.active) { background: #f1f3f5; color: #6f42c1; }
+        .chat-box { max-height: 200px; overflow-y: auto; background: #ffffff; border-radius: 8px; }
+        .flashcard { perspective: 1000px; height: 180px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 20px; border-radius: 12px; border: 1px solid #dee2e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .flashcard-front { background: #fff; color: #212529; }
+        .flashcard-back { background: #6f42c1; color: white; transform: rotateY(180deg); }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 sidebar d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="mb-4 text-center" style="color: #6f42c1;"><i class="fa-solid fa-graduation-cap"></i> Student Hub</h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/"><i class="fa-solid fa-house me-2"></i> Dashboard</a>
+                    <a class="nav-link active" href="/ai_suite"><i class="fa-solid fa-brain me-2"></i> AI Suite Engines</a>
+                    <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out</a>
+                </nav>
+            </div>
+            <div class="text-muted text-center small">Capstone Core v2.0</div>
+        </div>
+
+        <div class="col-md-9 col-lg-10 p-4">
+            
+            <div class="card p-3 shadow-sm bg-white border mb-4">
+                <form action="/ai/save_key" method="POST">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h6 class="mb-0"><i class="fa-solid fa-key text-warning me-2"></i> Custom Gemini AI Engine Token</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="password" name="api_key" class="form-control form-control-sm" placeholder="Paste fresh Google GenAI Token here if default key throws 401..." value="{{ current_key }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-dark w-100">Set Token</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card p-4 shadow-sm bg-white h-100">
+                        <h5><i class="fa-solid fa-bullseye text-danger me-2"></i> AI Goal Coach Tracker</h5>
+                        <p class="text-muted small">Establish an academic target, and Gemini will map out structured recommendations automatically.</p>
+                        <form action="/ai/goal_coach" method="POST">
+    <textarea name="goal" placeholder="What is your academic goal?"></textarea>
+    
+    <button type="submit">Get Action Plan</button>
+</form>
+                        
+                        {% if goal %}
+                            <div class="mt-3 p-3 bg-light rounded border">
+                                <h6><strong>Your Current Goal:</strong> "{{ goal.text }}"</h6>
+                                <hr class="my-2">
+                                <div class="small text-secondary" style="white-space: pre-wrap;">{{ goal.recs }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="card p-4 shadow-sm bg-white h-100">
+                        <h5><i class="fa-solid fa-chart-line text-success me-2"></i> Performance Repository Metric</h5>
+                        <div class="row text-center my-auto">
+                            <div class="col-6 mb-2">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="mb-0 text-primary">{{ chats|length }}</h4>
+                                    <span class="small text-muted">Saved AI Chats</span>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="mb-0 text-success">{{ flashcards|length }}</h4>
+                                    <span class="small text-muted">Logged Cards</span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="p-2 border rounded bg-light">
+                                    <span class="small text-muted">Recent Completed Quizzes: <strong>{{ quizzes|length }} sessions</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm bg-white h-100">
+                        <h5>📝 Homework Helper & Explainer</h5>
+                        <div class="mb-3 mt-2">
+                            <textarea id="helper-input" class="form-control" rows="3" placeholder="Paste assignments instructions or study topic here..."></textarea>
+                        </div>
+                        <div class="d-flex gap-2 mb-3">
+                            <button onclick="runHomeworkHelper('explain')" class="btn btn-primary btn-sm flex-fill">Explain Deeply</button>
+                            <button onclick="runHomeworkHelper('summarize')" class="btn btn-success btn-sm flex-fill">Summarize Content</button>
+                        </div>
+                        <div id="helper-output" class="p-3 bg-light rounded text-dark small mb-3 border d-none" style="white-space: pre-wrap;"></div>
+                        
+                        <h6 class="mt-2 text-secondary"><i class="fa-solid fa-clock-rotate-left"></i> Historic Saved Chats</h6>
+                        <div class="chat-box border p-2 bg-light rounded">
+                            {% if not chats %}
+                                <p class="text-center text-muted small my-3">No historic conversations stored yet.</p>
+                            {% else %}
+                                {% for chat in chats %}
+                                    <div class="p-2 mb-2 bg-white rounded border small">
+                                        <div class="d-flex justify-content-between text-muted mb-1" style="font-size:10px;">
+                                            <span><strong>Prompt:</strong> {{ chat.prompt[:40] }}...</span>
+                                            <span>{{ chat.timestamp }}</span>
+                                        </div>
+                                        <div class="text-dark" style="font-size:11px; white-space:pre-wrap;">{{ chat.response[:150] }}...</div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm bg-white h-100">
+                        <h5>📚 Note Synthesizer & PDF Exporter</h5>
+                        <div class="input-group mt-2 mb-3">
+                            <input type="text" id="notes-topic" class="form-control" placeholder="Enter topic for custom study guide notes...">
+                            <button onclick="generateStudyNotes()" class="btn btn-dark">Compile Notes</button>
+                        </div>
+                        <div id="notes-output-container" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-success"><strong>Notes Compiled!</strong></span>
+                                <button onclick="triggerPdfDownload()" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                            </div>
+                            <div id="notes-markdown-view" class="p-3 bg-light border text-dark small rounded" style="max-height: 200px; overflow-y:auto; white-space: pre-wrap;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm bg-white h-100">
+                        <h5>🗂️ Dynamic Flashcards Constructor</h5>
+                        <div class="input-group mt-2 mb-3">
+                            <input type="text" id="flashcard-text" class="form-control" placeholder="Enter topic material or core vocabulary term...">
+                            <button onclick="generateFlashcards()" class="btn btn-warning text-dark">Build Cards</button>
+                        </div>
+                        
+                        <div id="flashcard-workspace" class="d-none">
+                            <div class="flashcard mb-3" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front" id="card-front-display">Front Side</div>
+                                    <div class="flashcard-back" id="card-back-display">Back Side</div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button onclick="saveCurrentCard()" class="btn btn-outline-success btn-sm"><i class="fa-regular fa-bookmark"></i> Save Card</button>
+                                <button onclick="nextFlashcard()" class="btn btn-secondary btn-sm">Next Card <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-3 shadow-sm bg-white h-100">
+                        <h5>🎯 Interactive Quiz Engine Block</h5>
+                        <div class="input-group mt-2 mb-3">
+                            <input type="text" id="quiz-topic" class="form-control" placeholder="Enter subject focus for your assessment...">
+                            <button onclick="generateQuizSession()" class="btn text-white" style="background:#6f42c1;">Assemble Quiz</button>
+                        </div>
+                        
+                        <div id="quiz-workspace" class="d-none border p-3 rounded bg-light">
+                            <h6 id="quiz-question-title">Question Placeholder</h6>
+                            <div id="quiz-options-box" class="d-flex flex-column gap-2 my-3"></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span id="quiz-progress-text" class="small text-muted">Question 1 of 3</span>
+                                <button id="quiz-action-btn" onclick="submitQuizAnswer()" class="btn btn-sm btn-primary">Check Answer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let localFlashcards = [];
+let activeCardIndex = 0;
+let localQuizQuestions = [];
+let activeQuizIndex = 0;
+let selectedQuizOptIndex = null;
+let currentQuizCorrectCount = 0;
+let compiledNotesBody = "";
+
+async function runHomeworkHelper(mode) {
+    const text = document.getElementById('helper-input').value.trim();
+    if (!text) return alert("Please specify input text content first!");
+    
+    const outputDiv = document.getElementById('helper-output');
+    outputDiv.classList.remove('d-none');
+    outputDiv.innerText = "Querying Gemini AI Core Model Engine...";
+    
+    const res = await fetch('/ai/homework_helper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, mode })
+    });
+    const data = await res.json();
+    outputDiv.innerText = data.result || data.error;
+}
+
+async function generateStudyNotes() {
+    const topic = document.getElementById('notes-topic').value.trim();
+    if (!topic) return alert("Please state your chosen study topic!");
+    
+    document.getElementById('notes-output-container').classList.remove('d-none');
+    const view = document.getElementById('notes-markdown-view');
+    view.innerText = "Assembling your note summary structure...";
+    
+    const res = await fetch('/ai/generate_notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic })
+    });
+    const data = await res.json();
+    if(data.notes) {
+        compiledNotesBody = data.notes;
+        view.innerText = compiledNotesBody;
+    } else {
+        view.innerText = data.error;
+    }
+}
+
+function triggerPdfDownload() {
+    const topic = document.getElementById('notes-topic').value.trim() || 'Study Notes';
+    window.open(`/ai/download_notes?topic=${encodeURIComponent(topic)}&content=${encodeURIComponent(compiledNotesBody)}`, '_blank');
+}
+
+async function generateFlashcards() {
+    const text = document.getElementById('flashcard-text').value.trim();
+    if(!text) return alert("Please provide source material text details.");
+    
+    const res = await fetch('/ai/generate_flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (data.flashcards && data.flashcards.length > 0) {
+        localFlashcards = data.flashcards;
+        activeCardIndex = 0;
+        document.getElementById('flashcard-workspace').classList.remove('d-none');
+        renderFlashcardItem();
+    } else {
+        alert(data.error || "Unable to process flashcard payload data schema structure safely.");
+    }
+}
+
+function renderFlashcardItem() {
+    document.getElementById('flashcard-workspace').classList.remove('flipped');
+    const currentCard = localFlashcards[activeCardIndex];
+    document.getElementById('card-front-display').innerText = currentCard.front;
+    document.getElementById('card-back-display').innerText = currentCard.back;
+}
+
+function nextFlashcard() {
+    activeCardIndex = (activeCardIndex + 1) % localFlashcards.length;
+    renderFlashcardItem();
+}
+
+async function saveCurrentCard() {
+    const currentCard = localFlashcards[activeCardIndex];
+    const res = await fetch('/ai/save_flashcard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentCard)
+    });
+    if(res.ok) alert("Flashcard added to your Profile Database successfully! ✨");
+}
+
+async function generateQuizSession() {
+    const topic = document.getElementById('quiz-topic').value.trim();
+    if (!topic) return alert("Please enter your target evaluation subject framework!");
+    
+    const res = await fetch('/ai/generate_quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic })
+    });
+    const data = await res.json();
+    if (data.quiz && data.quiz.length > 0) {
+        localQuizQuestions = data.quiz;
+        activeQuizIndex = 0;
+        currentQuizCorrectCount = 0;
+        document.getElementById('quiz-workspace').classList.remove('d-none');
+        loadQuizQuestionIndex();
+    } else {
+        alert(data.error || "Quiz formatting error occurred.");
+    }
+}
+
+function loadQuizQuestionIndex() {
+    selectedQuizOptIndex = null;
+    const q = localQuizQuestions[activeQuizIndex];
+    document.getElementById('quiz-question-title').innerText = q.question;
+    document.getElementById('quiz-progress-text').innerText = `Question ${activeQuizIndex + 1} of ${localQuizQuestions.length}`;
+    
+    const container = document.getElementById('quiz-options-box');
+    container.innerHTML = "";
+    
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "btn btn-outline-secondary btn-sm text-start w-100 p-2";
+        btn.innerText = opt;
+        btn.onclick = () => {
+            Array.from(container.children).forEach(b => b.classList.replace('btn-secondary', 'btn-outline-secondary'));
+            btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+            selectedQuizOptIndex = idx;
+        };
+        container.appendChild(btn);
+    });
+    
+    const actionBtn = document.getElementById('quiz-action-btn');
+    actionBtn.innerText = "Check Answer";
+    actionBtn.onclick = submitQuizAnswer;
+}
+
+function submitQuizAnswer() {
+    if(selectedQuizOptIndex === null) return alert("Select an option item to verify!");
+    const q = localQuizQuestions[activeQuizIndex];
+    const container = document.getElementById('quiz-options-box');
+    
+    if (selectedQuizOptIndex === q.correct) {
+        currentQuizCorrectCount++;
+        container.children[selectedQuizOptIndex].classList.replace('btn-secondary', 'btn-success');
+    } else {
+        container.children[selectedQuizOptIndex].classList.replace('btn-secondary', 'btn-danger');
+        container.children[q.correct].classList.replace('btn-outline-secondary', 'btn-success');
+    }
+    
+    const actionBtn = document.getElementById('quiz-action-btn');
+    if (activeQuizIndex + 1 < localQuizQuestions.length) {
+        actionBtn.innerText = "Advance to Next Question";
+        actionBtn.onclick = () => {
+            activeQuizIndex++;
+            loadQuizQuestionIndex();
+        };
+    } else {
+        actionBtn.innerText = "Save and Conclude Quiz Session";
+        actionBtn.onclick = finalizeQuizSessionLog;
+    }
+}
+
+async function finalizeQuizSessionLog() {
+    const finalScoreStr = `${currentQuizCorrectCount} / ${localQuizQuestions.length}`;
+    const topic = document.getElementById('quiz-topic').value.trim() || 'General Study';
+    
+    await fetch('/ai/save_quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, quiz: localQuizQuestions, score: finalScoreStr })
+    });
+    
+    alert(`Quiz Complete! You scored: ${finalScoreStr}. Evaluation logged.`);
+    document.getElementById('quiz-workspace').classList.add('d-none');
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
