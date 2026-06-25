@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Hub - Welcome</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f7f4ef; /* Soft creamy latte background */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background: #ffffff; 
+            padding: 40px 30px; 
+            border-radius: 20px; /* Extra round and soft */
+            box-shadow: 0 8px 24px rgba(185, 172, 153, 0.2); 
+            width: 320px; 
+            text-align: center;
+            border: 2px solid #eaddcf; /* Soft warm border */
+        }
+        h2 { color: #6d5947; margin-bottom: 5px; font-size: 26px; }
+        .subtitle { color: #a39081; margin-bottom: 25px; font-size: 14px; }
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border: 2px solid #ecdcd0; 
+            border-radius: 12px; 
+            background: #faf8f5;
+            font-size: 14px;
+            color: #6d5947;
+            outline: none;
+        }
+        input:focus { border-color: #c0a995; }
+        button { 
+            width: 98%; 
+            padding: 12px; 
+            background: #b5c99a; /* Lovely sage green */
+            color: #435334; 
+            font-weight: bold;
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-top: 10px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        button:hover { background: #97a97c; transform: scale(1.02); }
+        a { color: #a47e6c; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        .error { color: #c97a7a; font-size: 14px; }
+        .success { color: #7ca982; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>☕ Cozy Study Hub</h2>
+        <div class="subtitle">Welcome back! Grab a warm drink and log in.</div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <p class="{{ category }}">{{ msg }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="text" name="username" placeholder="Your username" required><br>
+            <input type="password" name="password" placeholder="Your password" required><br>
+            <button type="submit">Enter Workspace ✨</button>
+        </form>
+        <p style="font-size: 14px; margin-top: 20px; color: #8e7d6f;">New friend? <a href="/register">Create an account</a></p>
+    </div>
+</body>
+</html>
